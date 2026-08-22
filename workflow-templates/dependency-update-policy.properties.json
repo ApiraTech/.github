@@ -1,0 +1,6 @@
+{
+  "name": "Dependency update policy",
+  "description": "Evaluate a semantic dependency update with ApiraTech's shared policy.",
+  "iconName": "octicon shield-check",
+  "categories": ["Automation"]
+}

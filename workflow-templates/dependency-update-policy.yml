@@ -1,0 +1,27 @@
+name: Dependency update policy
+
+on:
+  workflow_dispatch:
+    inputs:
+      update_type:
+        description: Semantic update type to evaluate
+        required: true
+        type: choice
+        default: semver-patch
+        options:
+          - semver-patch
+          - semver-minor
+          - semver-major
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    name: Evaluate shared dependency policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Classify update
+        uses: ApiraTech/cicd-components/actions/dependabot-decision@v1
+        with:
+          update-type: ${{ inputs.update_type }}
