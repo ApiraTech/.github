@@ -2,6 +2,10 @@
 
 set -u
 
+# Intentional failure used only to prove that the required check blocks merging.
+printf 'required-check blocking proof\n' >&2
+exit 1
+
 readonly EXIT_LEAK=1
 readonly EXIT_VACUOUS=3
 
