@@ -10,6 +10,10 @@ guidance, see our organization-wide
 [contributing guide](https://github.com/ApiraTech/.github/blob/main/CONTRIBUTING.md) and
 [code of conduct](https://github.com/ApiraTech/.github/blob/main/CODE_OF_CONDUCT.md).
 
+See [Repository defaults and local policy files](https://github.com/ApiraTech/.github/blob/main/REPOSITORY_DEFAULTS.md)
+for the distinction between inherited community files, workflow-template offers, and per-repository
+`CODEOWNERS` and Dependabot configuration.
+
 ## Security
 
 Please do not report vulnerabilities in public issues. Follow our
