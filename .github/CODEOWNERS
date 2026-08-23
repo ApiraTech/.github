@@ -1,0 +1,3 @@
+# Governance files only; product code ownership remains repository-specific.
+/.github/CODEOWNERS @aRustyDev
+/.github/dependabot.yml @aRustyDev
