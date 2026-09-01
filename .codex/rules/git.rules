@@ -1,10 +1,22 @@
-# Codex permission rules. Tracked deliberately: an untracked allow-list is per-machine.
-# Read-only and hermetic only. Mutating commands are absent and fall through to a prompt.
+# Codex permission rules. Tracked deliberately: an untracked allow-list is per-machine, so
+# two operators get different agent behaviour from the same task.
+# Mirrors TIER 1 of the STANDING AUTHORIZATION block on every chart-backlog bead. Tiers 2 and 3
+# are per-bead grants and human gates, deliberately NOT here; baking them into a machine-wide
+# prefix rule erases the distinction.
 #
-# CORRECTED 2026-08-31 after review. Every defect below was the same mistake: a comment
-# asserting an invariant that POSITIONAL PREFIX MATCHING CANNOT ENFORCE. A rule can only
-# constrain a command's PREFIX -- never a flag or refspec that appears later in argv.
-# If you cannot express the safe subset as a prefix, do not write the allow.
+# THE BAR IS "BOUNDED AND RECOVERABLE", NOT "READ-ONLY AND HERMETIC". Every header here asserted
+# the latter until 2026-08-31 and it was false of nearly every file: most of these rules reach
+# the network, and several WRITE. Each file states its own writes below. Nothing here pushes a
+# git ref, mutates a cloud provider or a cluster, or merges a PR -- but bd DOES write shared
+# state, so read bd.rules before assuming a grant is local.
+#
+# A rule constrains a command's PREFIX and nothing else -- never a flag, path or refspec that
+# appears later in argv. If you cannot express the safe subset as a prefix, do not write the
+# allow. Every defect found in review was a comment asserting an invariant prefix matching
+# cannot enforce.
+# Added 2026-08-31.
+# WRITES: worktree add creates a worktree and a branch on disk; fetch writes local refs
+# (see RESIDUAL below). Network: fetch.
 #
 # REMOVED: git push -u origin. The claim that it is 'the first push of a NEW branch, where
 # nothing can be overwritten' is FALSE. The prefix also matches --force, -f,
