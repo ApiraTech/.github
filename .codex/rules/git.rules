@@ -1,13 +1,24 @@
-# Codex permission rules. Tracked deliberately: an untracked allow-list is per-machine, so
-# two operators get different agent behaviour from the same task.
-# Read-only and hermetic only. Mutating and irreversible commands are deliberately absent --
-# they fall through to a prompt, which is the decision point.
-# Added 2026-08-31.
-# Inspection, worktrees and signed commits.
-# git push -u origin is the FIRST push of a NEW branch, where nothing can be overwritten.
-# Bare git push and git push origin are deliberately absent: they reach existing branches,
-# and --force matches the same prefix.
-prefix_rule(pattern=["git", ["status", "log", "diff", "show", "rev-parse", "branch", "describe", "blame", "verify-commit", "shortlog"]], decision="allow")
-prefix_rule(pattern=["git", "worktree", ["add", "list", "prune", "remove"]], decision="allow")
+# Codex permission rules. Tracked deliberately: an untracked allow-list is per-machine.
+# Read-only and hermetic only. Mutating commands are absent and fall through to a prompt.
+#
+# CORRECTED 2026-08-31 after review. Every defect below was the same mistake: a comment
+# asserting an invariant that POSITIONAL PREFIX MATCHING CANNOT ENFORCE. A rule can only
+# constrain a command's PREFIX -- never a flag or refspec that appears later in argv.
+# If you cannot express the safe subset as a prefix, do not write the allow.
+#
+# REMOVED: git push -u origin. The claim that it is 'the first push of a NEW branch, where
+# nothing can be overwritten' is FALSE. The prefix also matches --force, -f,
+# --force-with-lease, HEAD:master and any dest refspec, --delete, --all and --mirror, and a
+# plain push while checked out on an existing remote branch. Every push now prompts.
+# Suffix-forbidding would be incomplete: flag order, -f vs --force, refspecs.
+#
+# REMOVED: 'branch' from the read alternation. git branch -D <name> matches it and deletes.
+# REMOVED: git worktree remove. --force discards uncommitted work.
+#
+# RESIDUAL, stated rather than hidden: git fetch origin also matches a writing refspec such as
+# git fetch origin +master:master, which moves a LOCAL branch. Kept because fetch is constant
+# and the blast radius is local and recoverable -- but it is not the invariant-free allow it
+# looks like. A hook reading full argv is the only real fix.
+prefix_rule(pattern=["git", ["status", "log", "diff", "show", "rev-parse", "describe", "blame", "verify-commit", "shortlog"]], decision="allow")
+prefix_rule(pattern=["git", "worktree", ["add", "list", "prune"]], decision="allow")
 prefix_rule(pattern=["git", "fetch", "origin"], decision="allow")
-prefix_rule(pattern=["git", "push", "-u", "origin"], decision="allow")

@@ -1,9 +1,19 @@
-# Codex permission rules. Tracked deliberately: an untracked allow-list is per-machine, so
-# two operators get different agent behaviour from the same task.
-# Read-only and hermetic only. Mutating and irreversible commands are deliberately absent --
-# they fall through to a prompt, which is the decision point.
-# Added 2026-08-31.
-# Read-only inspection. Mutation falls through to a prompt.
+# Codex permission rules. Tracked deliberately: an untracked allow-list is per-machine.
+# Read-only and hermetic only. Mutating commands are absent and fall through to a prompt.
+#
+# CORRECTED 2026-08-31 after review. Every defect below was the same mistake: a comment
+# asserting an invariant that POSITIONAL PREFIX MATCHING CANNOT ENFORCE. A rule can only
+# constrain a command's PREFIX -- never a flag or refspec that appears later in argv.
+# If you cannot express the safe subset as a prefix, do not write the allow.
+#
+# REMOVED: 'view' from the config alternation. kubectl config view --raw matches the prefix and
+# DUMPS CLIENT CERTIFICATES AND TOKENS from the kubeconfig. Forbidding --raw is bypassable
+# (kubectl config view --minify --raw).
+#
+# RESIDUAL, stated rather than hidden: kubectl get also matches kubectl get secrets -o yaml.
+# The resource name sits later in argv, so no prefix rule can exclude it -- the same
+# argv-in-the-middle problem as bd update <id> --notes. If sessions here hold cluster
+# credentials, guard it in a hook; a rule cannot.
 prefix_rule(pattern=["kubectl", ["get", "describe", "logs", "explain", "api-resources", "api-versions", "version", "top", "cluster-info"]], decision="allow")
 prefix_rule(pattern=["kubectl", "auth", "can-i"], decision="allow")
-prefix_rule(pattern=["kubectl", "config", ["current-context", "get-contexts", "view"]], decision="allow")
+prefix_rule(pattern=["kubectl", "config", ["current-context", "get-contexts"]], decision="allow")
