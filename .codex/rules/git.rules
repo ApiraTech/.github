@@ -1,13 +1,36 @@
 # Codex permission rules. Tracked deliberately: an untracked allow-list is per-machine, so
 # two operators get different agent behaviour from the same task.
-# Read-only and hermetic only. Mutating and irreversible commands are deliberately absent --
-# they fall through to a prompt, which is the decision point.
+# Mirrors TIER 1 of the STANDING AUTHORIZATION block on every chart-backlog bead. Tiers 2 and 3
+# are per-bead grants and human gates, deliberately NOT here; baking them into a machine-wide
+# prefix rule erases the distinction.
+#
+# THE BAR IS "BOUNDED AND RECOVERABLE", NOT "READ-ONLY AND HERMETIC". Every header here asserted
+# the latter until 2026-08-31 and it was false of nearly every file: most of these rules reach
+# the network, and several WRITE. Each file states its own writes below. Nothing here pushes a
+# git ref, mutates a cloud provider or a cluster, or merges a PR -- but bd DOES write shared
+# state, so read bd.rules before assuming a grant is local.
+#
+# A rule constrains a command's PREFIX and nothing else -- never a flag, path or refspec that
+# appears later in argv. If you cannot express the safe subset as a prefix, do not write the
+# allow. Every defect found in review was a comment asserting an invariant prefix matching
+# cannot enforce.
 # Added 2026-08-31.
-# Inspection, worktrees and signed commits.
-# git push -u origin is the FIRST push of a NEW branch, where nothing can be overwritten.
-# Bare git push and git push origin are deliberately absent: they reach existing branches,
-# and --force matches the same prefix.
-prefix_rule(pattern=["git", ["status", "log", "diff", "show", "rev-parse", "branch", "describe", "blame", "verify-commit", "shortlog"]], decision="allow")
-prefix_rule(pattern=["git", "worktree", ["add", "list", "prune", "remove"]], decision="allow")
+# WRITES: worktree add creates a worktree and a branch on disk; fetch writes local refs
+# (see RESIDUAL below). Network: fetch.
+#
+# REMOVED: git push -u origin. The claim that it is 'the first push of a NEW branch, where
+# nothing can be overwritten' is FALSE. The prefix also matches --force, -f,
+# --force-with-lease, HEAD:master and any dest refspec, --delete, --all and --mirror, and a
+# plain push while checked out on an existing remote branch. Every push now prompts.
+# Suffix-forbidding would be incomplete: flag order, -f vs --force, refspecs.
+#
+# REMOVED: 'branch' from the read alternation. git branch -D <name> matches it and deletes.
+# REMOVED: git worktree remove. --force discards uncommitted work.
+#
+# RESIDUAL, stated rather than hidden: git fetch origin also matches a writing refspec such as
+# git fetch origin +master:master, which moves a LOCAL branch. Kept because fetch is constant
+# and the blast radius is local and recoverable -- but it is not the invariant-free allow it
+# looks like. A hook reading full argv is the only real fix.
+prefix_rule(pattern=["git", ["status", "log", "diff", "show", "rev-parse", "describe", "blame", "verify-commit", "shortlog"]], decision="allow")
+prefix_rule(pattern=["git", "worktree", ["add", "list", "prune"]], decision="allow")
 prefix_rule(pattern=["git", "fetch", "origin"], decision="allow")
-prefix_rule(pattern=["git", "push", "-u", "origin"], decision="allow")
