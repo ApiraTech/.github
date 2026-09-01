@@ -24,7 +24,13 @@
 # the read-only subcommands are enumerated now; `fmt` is included and rewrites Rego files
 # locally, which is bounded and recoverable.
 # RESIDUAL, stated: `yq -i` edits a file in place, the same local-write trade as `sed`.
-prefix_rule(pattern=["conftest", ["test", "verify", "parse", "reformat", "fmt"]], decision="allow")
+#
+# REMOVED 2026-09-01 (round 3): "test" from the conftest set. `conftest test --update <url>` is
+# the documented pull-then-run path -- its own help says the URLs "will download before the tests
+# run" -- so it re-opens over git/HTTPS/OCI/S3 exactly the remote fetch that dropping `pull` was
+# meant to close, and evaluates the fetched Rego. `verify` takes no --update and stays.
+# Policy gates still run conftest through an enumerated `just` recipe.
+prefix_rule(pattern=["conftest", ["verify", "parse", "reformat", "fmt"]], decision="allow")
 prefix_rule(pattern=["dig"], decision="allow")
 prefix_rule(pattern=["dscacheutil"], decision="allow")
 prefix_rule(pattern=["kubeconform"], decision="allow")

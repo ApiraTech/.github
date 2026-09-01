@@ -25,5 +25,10 @@
 # executable PATH, while Helm 4.2.4 resolves a post-renderer PLUGIN and refuses a path, so it is
 # not reproducible on a Helm 4 station. A rule must hold for every station, so template prompts.
 # Rendering through an enumerated `just` recipe is unaffected.
-prefix_rule(pattern=["helm", ["list", "get", "lint", "show", "search", "history", "status", "version", "unittest"]], decision="allow")
+#
+# REMOVED 2026-09-01 (round 3): "unittest". helm-unittest honours `postRenderer.cmd` from the test
+# YAML, so the allow granted arbitrary local execution -- the same escape `template` was removed
+# for. MEASURED, not argued: a suite naming a throwaway script ran it, and the script's marker file
+# was written. Chart tests still run through an enumerated `just` recipe.
+prefix_rule(pattern=["helm", ["list", "get", "lint", "show", "search", "history", "status", "version"]], decision="allow")
 prefix_rule(pattern=["helm", "dependency", ["list", "build"]], decision="allow")

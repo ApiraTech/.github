@@ -32,5 +32,13 @@
 # RESIDUAL, stated: `providers lock` / `providers mirror` write locally, and `fmt` rewrites
 # tracked files. Both bounded and recoverable. Running init through an enumerated `just` recipe
 # is unaffected.
-prefix_rule(pattern=["tofu", ["validate", "fmt", "plan", "providers", "version"]], decision="allow")
+#
+# REMOVED 2026-09-01 (round 3): "plan", and my own earlier "measured clean" claim for it was
+# INCOMPLETE -- it measured stdout only. Two later flags defeat it, both MEASURED:
+#   plan -show-sensitive   prints values a plain plan redacts (plan=0 hits, -show-sensitive=1)
+#   plan -out=<file>       writes a plan file holding UNREDACTED sensitive values. A raw grep of
+#                          that file finds nothing because it is compressed; `tofu show -json`
+#                          on it returns the secret. A naive grep would have wrongly cleared it.
+# Still measured clean and KEPT: validate, fmt, providers, version, state list.
+prefix_rule(pattern=["tofu", ["validate", "fmt", "providers", "version"]], decision="allow")
 prefix_rule(pattern=["tofu", "state", "list"], decision="allow")
