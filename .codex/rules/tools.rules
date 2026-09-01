@@ -1,0 +1,12 @@
+# Codex permission rules. Tracked deliberately: an untracked allow-list is per-machine, so
+# two operators get different agent behaviour from the same task.
+# Read-only and hermetic only. Mutating and irreversible commands are deliberately absent --
+# they fall through to a prompt, which is the decision point.
+# Added 2026-08-31.
+# Hermetic local tooling.
+prefix_rule(pattern=["conftest"], decision="allow")
+prefix_rule(pattern=["dig"], decision="allow")
+prefix_rule(pattern=["dscacheutil"], decision="allow")
+prefix_rule(pattern=["kubeconform"], decision="allow")
+prefix_rule(pattern=["jq"], decision="allow")
+prefix_rule(pattern=["yq"], decision="allow")

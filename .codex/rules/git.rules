@@ -1,0 +1,13 @@
+# Codex permission rules. Tracked deliberately: an untracked allow-list is per-machine, so
+# two operators get different agent behaviour from the same task.
+# Read-only and hermetic only. Mutating and irreversible commands are deliberately absent --
+# they fall through to a prompt, which is the decision point.
+# Added 2026-08-31.
+# Inspection, worktrees and signed commits.
+# git push -u origin is the FIRST push of a NEW branch, where nothing can be overwritten.
+# Bare git push and git push origin are deliberately absent: they reach existing branches,
+# and --force matches the same prefix.
+prefix_rule(pattern=["git", ["status", "log", "diff", "show", "rev-parse", "branch", "describe", "blame", "verify-commit", "shortlog"]], decision="allow")
+prefix_rule(pattern=["git", "worktree", ["add", "list", "prune", "remove"]], decision="allow")
+prefix_rule(pattern=["git", "fetch", "origin"], decision="allow")
+prefix_rule(pattern=["git", "push", "-u", "origin"], decision="allow")
