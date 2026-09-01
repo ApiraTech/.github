@@ -1,0 +1,12 @@
+# Codex permission rules. Tracked deliberately: an untracked allow-list is per-machine, so
+# two operators get different agent behaviour from the same task.
+# Read-only and hermetic only. Mutating and irreversible commands are deliberately absent --
+# they fall through to a prompt, which is the decision point.
+# Added 2026-08-31.
+# DELIBERATELY BROAD, and the reason matters.
+# bd update --notes overwrites and once silently blanked a bead (fddc771).
+# It CANNOT be expressed here: prefix patterns are positional literals with alternation and no
+# wildcard, and `bd update <id> --notes` puts the bead ID between the two tokens. Narrowing to
+# specific verbs would make every --claim/--status/--append-notes prompt, which agents do
+# constantly. The correct mechanism reads full argv: a bd-notes-guard PreToolUse hook.
+prefix_rule(pattern=["bd"], decision="allow")

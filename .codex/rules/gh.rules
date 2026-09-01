@@ -1,0 +1,9 @@
+# Codex permission rules. Tracked deliberately: an untracked allow-list is per-machine, so
+# two operators get different agent behaviour from the same task.
+# Read-only and hermetic only. Mutating and irreversible commands are deliberately absent --
+# they fall through to a prompt, which is the decision point.
+# Added 2026-08-31.
+# PR and run reads. gh pr merge, release and secret writes are deliberately absent.
+prefix_rule(pattern=["gh", "pr", ["view", "list", "diff", "checks", "status", "create"]], decision="allow")
+prefix_rule(pattern=["gh", "run", ["view", "list"]], decision="allow")
+prefix_rule(pattern=["gh", "api", "-X", "GET"], decision="allow")

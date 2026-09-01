@@ -1,0 +1,8 @@
+# Codex permission rules. Tracked deliberately: an untracked allow-list is per-machine, so
+# two operators get different agent behaviour from the same task.
+# Read-only and hermetic only. Mutating and irreversible commands are deliberately absent --
+# they fall through to a prompt, which is the decision point.
+# Added 2026-08-31.
+# Render and inspect only. install/upgrade/uninstall fall through to a prompt.
+prefix_rule(pattern=["helm", ["list", "get", "template", "lint", "show", "search", "history", "status", "version", "unittest"]], decision="allow")
+prefix_rule(pattern=["helm", "dependency", ["list", "build"]], decision="allow")
