@@ -18,7 +18,13 @@
 # NOT hermetic, despite the name below: dig queries a resolver, and kubeconform
 # downloads schemas from the network unless pointed at a local schema directory.
 # Local tooling for the gates.
-prefix_rule(pattern=["conftest"], decision="allow")
+#
+# NARROWED 2026-09-01: bare `conftest` allowed every subcommand, including `push` (publishes an
+# OPA bundle to an OCI registry), `pull` (fetches policies) and `plugin` (INSTALLS CODE). Only
+# the read-only subcommands are enumerated now; `fmt` is included and rewrites Rego files
+# locally, which is bounded and recoverable.
+# RESIDUAL, stated: `yq -i` edits a file in place, the same local-write trade as `sed`.
+prefix_rule(pattern=["conftest", ["test", "verify", "parse", "reformat", "fmt"]], decision="allow")
 prefix_rule(pattern=["dig"], decision="allow")
 prefix_rule(pattern=["dscacheutil"], decision="allow")
 prefix_rule(pattern=["kubeconform"], decision="allow")

@@ -18,5 +18,19 @@
 # WRITES: fmt rewrites tracked .tf files; init writes .terraform/ and may update
 # .terraform.lock.hcl. Network: init and providers reach registry.opentofu.org.
 # No tofu apply -- it falls through to a prompt. Not read-only: see above.
-prefix_rule(pattern=["tofu", ["init", "validate", "fmt", "plan", "providers", "version", "output"]], decision="allow")
-prefix_rule(pattern=["tofu", "state", ["list", "show", "pull"]], decision="allow")
+#
+# REMOVED 2026-09-01, four of them, every claim MEASURED against a throwaway local root with a
+# sensitive variable rather than assumed:
+#   init          `tofu init -migrate-state` / `-force-copy` COPY STATE BETWEEN BACKENDS, which
+#                 writes the remote backend -- flatly contradicting this header's claim that
+#                 nothing here mutates a cloud provider. The flag sits later in argv.
+#   state show    LEAKS. Expected to redact as "(sensitive value)"; it does not.
+#   state pull    LEAKS -- raw state, no redaction at all.
+#   output        plain `output` redacts, but `output -json` LEAKS. Unfixable by prefix, the
+#                 same shape as `kubectl config view --raw`, so the allow goes.
+# Measured clean and therefore KEPT: plan, plan -json, state list, validate (0 leaks each).
+# RESIDUAL, stated: `providers lock` / `providers mirror` write locally, and `fmt` rewrites
+# tracked files. Both bounded and recoverable. Running init through an enumerated `just` recipe
+# is unaffected.
+prefix_rule(pattern=["tofu", ["validate", "fmt", "plan", "providers", "version"]], decision="allow")
+prefix_rule(pattern=["tofu", "state", "list"], decision="allow")
