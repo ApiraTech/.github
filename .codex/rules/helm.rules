@@ -18,5 +18,12 @@
 # WRITES: dependency build writes charts/ and Chart.lock.
 # Network: dependency build, search, and any repo-backed show.
 # No install/upgrade/uninstall -- they fall through to a prompt. Not read-only: see above.
-prefix_rule(pattern=["helm", ["list", "get", "template", "lint", "show", "search", "history", "status", "version", "unittest"]], decision="allow")
+#
+# REMOVED 2026-09-01: "template" from the union. `helm template --post-renderer <exe>` runs that
+# executable, making the allow an unsandboxed exec path -- the same class as the blanket `just`
+# removed earlier. VERSION-DEPENDENT, and stated rather than overclaimed: Helm 3 takes an
+# executable PATH, while Helm 4.2.4 resolves a post-renderer PLUGIN and refuses a path, so it is
+# not reproducible on a Helm 4 station. A rule must hold for every station, so template prompts.
+# Rendering through an enumerated `just` recipe is unaffected.
+prefix_rule(pattern=["helm", ["list", "get", "lint", "show", "search", "history", "status", "version", "unittest"]], decision="allow")
 prefix_rule(pattern=["helm", "dependency", ["list", "build"]], decision="allow")

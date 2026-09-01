@@ -25,6 +25,10 @@
 # The resource name sits later in argv, so no prefix rule can exclude it -- the same
 # argv-in-the-middle problem as bd update <id> --notes. If sessions here hold cluster
 # credentials, guard it in a hook; a rule cannot.
-prefix_rule(pattern=["kubectl", ["get", "describe", "logs", "explain", "api-resources", "api-versions", "version", "top", "cluster-info"]], decision="allow")
+#
+# REMOVED 2026-09-01: "cluster-info" from the union. `kubectl cluster-info dump` matches the
+# prefix and emits full cluster state plus pod logs, which routinely carry credentials -- the
+# same credential-exposure class as `config view` above. The `dump` sits later in argv.
+prefix_rule(pattern=["kubectl", ["get", "describe", "logs", "explain", "api-resources", "api-versions", "version", "top"]], decision="allow")
 prefix_rule(pattern=["kubectl", "auth", "can-i"], decision="allow")
 prefix_rule(pattern=["kubectl", "config", ["current-context", "get-contexts"]], decision="allow")
