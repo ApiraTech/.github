@@ -40,5 +40,13 @@
 #                          that file finds nothing because it is compressed; `tofu show -json`
 #                          on it returns the secret. A naive grep would have wrongly cleared it.
 # Still measured clean and KEPT: validate, fmt, providers, version, state list.
-prefix_rule(pattern=["tofu", ["validate", "fmt", "providers", "version"]], decision="allow")
+#
+# REMOVED 2026-09-01 (round 4): "providers", and the note this file carried one round ago was
+# itself the overclaim -- it called providers lock/mirror a merely LOCAL write. It is not:
+#   tofu providers lock -net-mirror=<url>   consults a network mirror at an agent-chosen URL
+#   tofu providers mirror <dir>             writes provider BINARIES into that directory
+# So the prefix reached an arbitrary remote fetch of executables, not a lockfile touch-up.
+# Confirmed in `tofu providers lock -help`: "-net-mirror=url  Consult the given network mirror".
+# What remains is what has been measured clean: validate, fmt, version, state list.
+prefix_rule(pattern=["tofu", ["validate", "fmt", "version"]], decision="allow")
 prefix_rule(pattern=["tofu", "state", "list"], decision="allow")
