@@ -31,6 +31,11 @@
 # git fetch origin +master:master, which moves a LOCAL branch. Kept because fetch is constant
 # and the blast radius is local and recoverable -- but it is not the invariant-free allow it
 # looks like. A hook reading full argv is the only real fix.
+#
+# REMOVED 2026-09-01 (round 3): "add" from the worktree alternation. `git worktree add -B <branch>`
+# RESETS an existing branch to the start-point -- MEASURED: a branch at 5ecf287 moved to af88880.
+# That is a local branch move, the same class as the `fetch` refspec residual below, and the -B
+# sits later in argv. `list` and `prune` remain.
 prefix_rule(pattern=["git", ["status", "log", "diff", "show", "rev-parse", "describe", "blame", "verify-commit", "shortlog"]], decision="allow")
-prefix_rule(pattern=["git", "worktree", ["add", "list", "prune"]], decision="allow")
+prefix_rule(pattern=["git", "worktree", ["list", "prune"]], decision="allow")
 prefix_rule(pattern=["git", "fetch", "origin"], decision="allow")

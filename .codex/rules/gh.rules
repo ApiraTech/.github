@@ -17,6 +17,14 @@
 # Added 2026-08-31.
 # Network, read-only against GitHub.
 # PR and run reads. gh pr merge, release and secret writes are deliberately absent.
-prefix_rule(pattern=["gh", "pr", ["view", "list", "diff", "checks", "status", "create"]], decision="allow")
+#
+# REMOVED 2026-09-01: gh api -X GET. MEASURED, not theorised -- `-X` and `--method` are the same
+# pflag, so the LAST value wins: `gh api -X GET --method DELETE <endpoint>` sends DELETE. Proven
+# with GH_DEBUG=api pointed at 127.0.0.1, whose request line read `DELETE /api/v3/...` while a
+# plain `-X GET` control read `GET`. A prefix cannot forbid a later --method, so the allow is
+# gone. An implicit-GET `gh api <endpoint>` already prompted and still does.
+#
+# REMOVED 2026-09-01: "create" from the gh pr union. Creating a pull request is a remote write,
+# and the tier model this file mirrors names gh pr create as explicitly NOT tier 1.
+prefix_rule(pattern=["gh", "pr", ["view", "list", "diff", "checks", "status"]], decision="allow")
 prefix_rule(pattern=["gh", "run", ["view", "list"]], decision="allow")
-prefix_rule(pattern=["gh", "api", "-X", "GET"], decision="allow")

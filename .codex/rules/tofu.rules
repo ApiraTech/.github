@@ -18,5 +18,35 @@
 # WRITES: fmt rewrites tracked .tf files; init writes .terraform/ and may update
 # .terraform.lock.hcl. Network: init and providers reach registry.opentofu.org.
 # No tofu apply -- it falls through to a prompt. Not read-only: see above.
-prefix_rule(pattern=["tofu", ["init", "validate", "fmt", "plan", "providers", "version", "output"]], decision="allow")
-prefix_rule(pattern=["tofu", "state", ["list", "show", "pull"]], decision="allow")
+#
+# REMOVED 2026-09-01, four of them, every claim MEASURED against a throwaway local root with a
+# sensitive variable rather than assumed:
+#   init          `tofu init -migrate-state` / `-force-copy` COPY STATE BETWEEN BACKENDS, which
+#                 writes the remote backend -- flatly contradicting this header's claim that
+#                 nothing here mutates a cloud provider. The flag sits later in argv.
+#   state show    LEAKS. Expected to redact as "(sensitive value)"; it does not.
+#   state pull    LEAKS -- raw state, no redaction at all.
+#   output        plain `output` redacts, but `output -json` LEAKS. Unfixable by prefix, the
+#                 same shape as `kubectl config view --raw`, so the allow goes.
+# Measured clean and therefore KEPT: plan, plan -json, state list, validate (0 leaks each).
+# RESIDUAL, stated: `providers lock` / `providers mirror` write locally, and `fmt` rewrites
+# tracked files. Both bounded and recoverable. Running init through an enumerated `just` recipe
+# is unaffected.
+#
+# REMOVED 2026-09-01 (round 3): "plan", and my own earlier "measured clean" claim for it was
+# INCOMPLETE -- it measured stdout only. Two later flags defeat it, both MEASURED:
+#   plan -show-sensitive   prints values a plain plan redacts (plan=0 hits, -show-sensitive=1)
+#   plan -out=<file>       writes a plan file holding UNREDACTED sensitive values. A raw grep of
+#                          that file finds nothing because it is compressed; `tofu show -json`
+#                          on it returns the secret. A naive grep would have wrongly cleared it.
+# Still measured clean and KEPT: validate, fmt, providers, version, state list.
+#
+# REMOVED 2026-09-01 (round 4): "providers", and the note this file carried one round ago was
+# itself the overclaim -- it called providers lock/mirror a merely LOCAL write. It is not:
+#   tofu providers lock -net-mirror=<url>   consults a network mirror at an agent-chosen URL
+#   tofu providers mirror <dir>             writes provider BINARIES into that directory
+# So the prefix reached an arbitrary remote fetch of executables, not a lockfile touch-up.
+# Confirmed in `tofu providers lock -help`: "-net-mirror=url  Consult the given network mirror".
+# What remains is what has been measured clean: validate, fmt, version, state list.
+prefix_rule(pattern=["tofu", ["validate", "fmt", "version"]], decision="allow")
+prefix_rule(pattern=["tofu", "state", "list"], decision="allow")
