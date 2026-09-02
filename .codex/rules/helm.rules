@@ -30,5 +30,11 @@
 # YAML, so the allow granted arbitrary local execution -- the same escape `template` was removed
 # for. MEASURED, not argued: a suite naming a throwaway script ran it, and the script's marker file
 # was written. Chart tests still run through an enumerated `just` recipe.
-prefix_rule(pattern=["helm", ["list", "get", "lint", "show", "search", "history", "status", "version"]], decision="allow")
+#
+# REMOVED 2026-09-02 (round 5): "list", "get", "history" and "status" -- the cluster-talking
+# subset. helm takes --kube-apiserver and --kube-insecure-skip-tls-verify, the same retargeting
+# hole measured for kubectl, so these could ship the current credentials off-box.
+# `helm get` had to go regardless: `helm get values --all` and `helm get manifest` print
+# unredacted release values, which routinely hold Secret data.
+prefix_rule(pattern=["helm", ["lint", "show", "search", "version"]], decision="allow")
 prefix_rule(pattern=["helm", "dependency", ["list", "build"]], decision="allow")
