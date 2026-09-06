@@ -1,0 +1,55 @@
+# Preamble for every rule file in this directory. Comment-only on purpose: codex loads it, finds
+# no prefix_rule, and the shared context then lives in ONE place instead of being copied into each
+# file's header. Verified that codex accepts a rules file containing no rules.
+#
+# ============================================================================================
+# THIS ALLOW-LIST IS BYPASSABLE BY AN ENVIRONMENT ASSIGNMENT. MEASURED 2026-09-03.
+# ============================================================================================
+# A rule that prompts for `dscacheutil -q host` did NOT fire for `FOO=bar dscacheutil -q host`.
+# The assignment becomes argv[0], so no prefix matches, and a non-interactive run (`codex exec`
+# with approval: never) then executes the command. Both consequences are bad:
+#
+#   * every decision="prompt" here is defeated by a dummy `FOO=bar ` prefix
+#   * every decision="allow" silently stops applying, so behaviour falls back to the default
+#
+# A prefix rule cannot condition on the environment at all: the assignments are not part of the
+# argv it matches. This is not a gap to be enumerated away -- it is outside what the mechanism
+# can see. The same blindness hides GIT_SSH_COMMAND, KUBECONFIG, GH_HOST and LD_PRELOAD, each of
+# which retargets a credential or injects code without appearing in argv.
+#
+# THE BACKSTOP IS A HOOK, NOT A RULE: ~/.codex/hooks/argv-guard.py, tracked in the dotfiles repo
+# at home/codex/hooks/argv-guard.py. It receives the whole command line INCLUDING assignments,
+# and was verified to still deny `FOO=bar kubectl get secret ...`, `FOO=bar git reset --hard` and
+# `FOO=bar gh api -X DELETE ...` -- every one of which this rule set waves through.
+#
+# ⚠️ THE HOOK RUNS ONLY IN A PROJECT CODEX HAS BEEN TOLD TO TRUST. An untrusted project silently
+# runs no hooks whatsoever -- three probes did nothing at all before a
+# [projects."<path>"] trust_level = "trusted" entry existed. A fresh clone therefore has no
+# backstop, which is exactly why these rules stay restrictive instead of leaning on it.
+#
+# ============================================================================================
+# WHY THE ALLOWS HERE ARE SO NARROW
+# ============================================================================================
+# Five review rounds found ten places where a rule's stated invariant was unenforceable, because
+# a prefix cannot see a flag, path or refspec that appears LATER in argv. Each was measured
+# against the real tool rather than argued from a manual:
+#
+#   gh api -X GET --method DELETE   sends DELETE: -X and --method are one pflag, last value wins
+#   kubectl ... --server https://x  ships the bearer token to a host of the caller's choosing
+#   helm ... --post-renderer <exe>  executes that binary
+#   yq --security-enable-system-operator   turns on system(), which executes an external command
+#   conftest test --update <url>    downloads remote policy and then evaluates it
+#   tofu plan -out=<file>          writes UNREDACTED sensitive values into the plan file
+#   tofu providers lock -net-mirror  fetches provider BINARIES from a chosen URL
+#   git worktree add -B <branch>   RESETS an existing branch
+#   git push origin +main          is a force push with no --force anywhere in argv
+#   kubectl get secret ... -o yaml  reads Secrets, which no prefix can exclude
+#
+# The rule of thumb that came out of it, and the one to apply to any addition here:
+#
+#   IF YOU CANNOT EXPRESS THE SAFE SUBSET AS A PREFIX, DO NOT WRITE THE ALLOW.
+#
+# Prefer a `just` recipe whose body pins the dangerous flags. cicd-components already had the
+# worked example before this series started: `just gh api get` validates its one argument and
+# execs `gh api --method GET "$endpoint"`, so the method is fixed by the repository and no
+# agent-supplied flag can reach it. That is a bounded grant; an allow-list of verbs is not.

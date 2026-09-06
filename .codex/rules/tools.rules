@@ -30,9 +30,13 @@
 # run" -- so it re-opens over git/HTTPS/OCI/S3 exactly the remote fetch that dropping `pull` was
 # meant to close, and evaluates the fetched Rego. `verify` takes no --update and stays.
 # Policy gates still run conftest through an enumerated `just` recipe.
+#
+# REMOVED 2026-09-02 (round 5): "yq". `yq --security-enable-system-operator 'system("/path")'`
+# EXECUTES that binary -- measured, and the control refuses without the flag ("system operations
+# are disabled"). The old residual called yq a local write (`yq -i`); it is arbitrary execution.
+# `jq` stays: it has no exec or write operator.
 prefix_rule(pattern=["conftest", ["verify", "parse", "reformat", "fmt"]], decision="allow")
 prefix_rule(pattern=["dig"], decision="allow")
 prefix_rule(pattern=["dscacheutil"], decision="allow")
 prefix_rule(pattern=["kubeconform"], decision="allow")
 prefix_rule(pattern=["jq"], decision="allow")
-prefix_rule(pattern=["yq"], decision="allow")
